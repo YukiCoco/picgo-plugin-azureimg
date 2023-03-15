@@ -19,21 +19,29 @@ export = (ctx: PicGo) => {
         alias: 'Auth token'
       },
       {
-        name: 'projectId',
+        name: 'repoName',
         type: 'input',
-        default: userConfig.projectId,
+        default: userConfig.repoName,
         required: true,
-        message: 'Project 的 ID',
-        alias: 'Project ID'
+        message: 'Repo 的名字',
+        alias: 'Repo Name'
       },
-      {
-        name: 'repoId',
-        type: 'input',
-        default: userConfig.repoId,
-        required: true,
-        message: 'Repo 的 ID',
-        alias: 'Repo ID'
-      },
+      // {
+      //   name: 'projectId',
+      //   type: 'input',
+      //   default: null,
+      //   required: false,
+      //   message: 'Project 的 ID',
+      //   alias: 'Project ID'
+      // },
+      // {
+      //   name: 'repoId',
+      //   type: 'input',
+      //   default: null,
+      //   required: false,
+      //   message: 'Repo 的 ID',
+      //   alias: 'Repo ID'
+      // },
       {
         name: 'orgDomain',
         type: 'input',
@@ -59,10 +67,11 @@ export = (ctx: PicGo) => {
       throw new Error('Can\'t find uploader config')
     }
     const token = userConfig.token;
-    const projectId = userConfig.projectId;
-    const repoId = userConfig.repoId;
+    let projectId = null;
+    let repoId = null;
     const orgDomain = userConfig.orgDomain;
     const orgName = userConfig.orgName;
+    const repoName = userConfig.repoName;
 
     const token_base64 = Buffer.from(":" + token).toString('base64');
 
@@ -70,9 +79,34 @@ export = (ctx: PicGo) => {
       'Content-Type': 'application/json',
       'Authorization': 'Basic ' + token_base64
     };
+    //find repo id and project id
+    const list_repos_config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `https://dev.azure.com/${orgName}/_apis/git/repositories?api-version=7.0`,
+      headers: headers
+    };
+
+    const list_repos_response = await axios(list_repos_config);
+    let list_projects = list_repos_response.data['value'];
+    for (const key in list_projects) {
+      if (Object.prototype.hasOwnProperty.call(list_projects, key)) {
+        const element = list_projects[key];
+        if (element['name'] == repoName) {
+          repoId = element['id'];
+          projectId = element['project']['id'];
+        }
+      }
+    }
+
+    if (!projectId || !repoId) {
+      throw new Error('无法找到仓库名字对应的 id，请检查仓库名字!');
+    }
+
     const today = new Date();
     const dir_name = `${today.getFullYear()}/${today.getMonth()}/${today.getDay()}`;
     const https = require('node:https');
+
     var commit_config = {
       method: 'get',
       maxBodyLength: Infinity,
@@ -132,7 +166,7 @@ export = (ctx: PicGo) => {
       data: data,
       httpsAgent: new https.Agent({ keepAlive: true })
     };
-    let upload_data_response = await axios(upload_data_config);
+    await axios(upload_data_config);
     for (let i in output) {
       output[i].imgUrl = `https://${orgDomain}/${projectId}/_apis/git/repositories/${repoId}/items?path=/${dir_name}/${output[i].fileName}&$format=octetStream&api-version=5.0`;
       output[i].url = `https://${orgDomain}/${projectId}/_apis/git/repositories/${repoId}/items?path=/${dir_name}/${output[i].fileName}&$format=octetStream&api-version=5.0`;
