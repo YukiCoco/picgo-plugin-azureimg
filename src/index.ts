@@ -147,7 +147,7 @@ export = (ctx: PicGo) => {
     var data = JSON.stringify({
       "refUpdates": [
         {
-          "name": "refs/heads/master",
+          "name": "refs/heads/main",
           "oldObjectId": commit_id
         }
       ],
@@ -161,7 +161,7 @@ export = (ctx: PicGo) => {
     let upload_data_config = {
       method: 'post',
       maxBodyLength: Infinity,
-      url: `https://dev.azure.com/${orgName}/setu/_apis/git/repositories/${repoId}/pushes?api-version=7.0`,
+      url: `https://dev.azure.com/${orgName}/${repoName}/_apis/git/repositories/${repoId}/pushes?api-version=7.0`,
       headers: headers,
       data: data,
       httpsAgent: new https.Agent({ keepAlive: true })
