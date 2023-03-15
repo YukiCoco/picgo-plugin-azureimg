@@ -110,7 +110,7 @@ export = (ctx: PicGo) => {
     var commit_config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: `https://dev.azure.com/${orgName}/${projectId}/_apis/git/repositories/${repoId}/commits`,
+      url: `https://dev.azure.com/${orgName}/${projectId}/_apis/git/repositories/${repoId}/commits?api-version=7.0`,
       headers: headers,
       httpsAgent: new https.Agent({ keepAlive: true })
     };
