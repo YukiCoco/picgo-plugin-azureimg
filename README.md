@@ -16,6 +16,6 @@ picgo install azureimg
 使用配置命令配置插件：
 ````
 picgo set uploader azureimg #配置 azureimg
-picgo use transformer #选择 azureimg
+picgo use transformer #选择 path
 picgo use uploader #选择 azureimg 作为 uploader
 ````
